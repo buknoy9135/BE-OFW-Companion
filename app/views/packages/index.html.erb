@@ -1,8 +1,24 @@
 <div>
-  <h1 class="font-bold text-4xl">Packages#index</h1>
-  <p>Find me in app/views/packages/index.html.erb</p>
+  <%= link_to "Back to Dashboard", dashboard_index_path%>
 </div>
 
 <div>
-  <%= link_to "Back to Dashboard", dashboard_index_path%>
+  <%= link_to "New Package", new_package_path %>
 </div>
+
+<h1>My Packages</h1>
+
+<% @packages.each do |pkg| %>
+  <!-- Find the first non-nil stage in events -->
+  <% last_stage_event = pkg.tracking_events.find { |e| e["stage"].present? } %>
+  <% current_status = last_stage_event ? last_stage_event["stage"] : "Unknown" %>
+
+  <p>
+    <%= link_to package_path(pkg) do%>
+      <strong>Tracking Number:</strong> <%= pkg.tracking_number %> |
+      <strong>Courier:</strong> <%= pkg.courier_name %> |
+      <strong>Status:</strong> <%= titleize_status(current_status) %>
+    <% end %>
+  </p>
+<% end %>
+
