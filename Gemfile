@@ -74,4 +74,4 @@ group :development, :test do
   gem "rubocop", require: false
 end
 
-gem "twilio-ruby", "~> 7.7.1"
+gem "twilio-ruby", "~> 7.8.0"
