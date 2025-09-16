@@ -1,0 +1,64 @@
+<div class="flex flex-col h-full bg-white">
+  <!-- Scrollable tracker section -->
+  <div class="flex-1 overflow-y-auto">
+    <% if @in_transit_packages.present? %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm md:text-sm lg:text-base table-fixed">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="font-semibold px-4 py-2 text-center font-medium text-gray-900 w-1/6 sm:w-1/6">Name</th>
+              <th class="font-semibold px-4 py-2 text-center font-medium text-gray-900 hidden md:table-cell w-1/6">Tracking</th>
+              <th class="font-semibold px-2 sm:px-4 py-2 text-center font-medium text-gray-900 hidden md:table-cell w-1/6">Courier</th>
+              <th class="font-semibold px-2 sm:px-4 py-2 text-center font-medium text-gray-900 w-1/6 sm:w-1/6">Status</th>
+              <th class="font-semibold px-2 sm:px-4 py-2 text-center font-medium text-gray-900 hidden md:table-cell w-1/6">Location</th>
+              <th class="font-semibold px-2 sm:px-4 py-2 text-center font-medium text-gray-900 hidden md:table-cell w-2/6">Description</th>
+            </tr>
+          </thead>
+
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @in_transit_packages.each do |pkg| %>
+              <% latest_event = pkg.latest_event_raw || {} %>
+              <% description = latest_event["description"] || "Not Specified" %>
+              <% current_status =
+                pkg.status.presence ||
+                latest_event["stage"].presence ||
+                latest_event["sub_status"].to_s.split("_").first.presence || "Unknown" %>
+              <% current_status = current_status.gsub(/([a-z])([A-Z])/, '\1 \2').titleize %>
+
+              <% last_update = latest_event["time_utc"].presence || pkg.last_update %>
+              <% last_update_formatted = last_update ? Time.zone.parse(last_update.to_s).strftime("%b %d, %Y %I:%M %p") : "N/A" %>
+
+              <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='<%= package_path(pkg) %>'">
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm truncate"><%= pkg.package_name %></td>
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm hidden md:table-cell truncate"><%= pkg.tracking_number %></td>
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm hidden md:table-cell truncate"><%= pkg.courier_name %></td>
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm truncate"><%= current_status %></td>
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm hidden md:table-cell truncate"><%= pkg.last_location %></td>
+                <td class="px-4 py-3 font-medium text-gray-600 text-center text-xs sm:text-sm hidden md:table-cell truncate"><%= description %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="flex flex-col items-center justify-center gap-3 min-h-[10rem] py-18">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-plus-icon lucide-package-plus h-16 w-16 text-gray-500"><path d="M16 16h6"/><path d="M19 13v6"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
+        <p class="text-gray-600 py-2 text-center sm:text-left">
+          There are no In-Transit packages.
+        </p>
+        <%= link_to new_package_path,
+              class: "bg-blue-600 text-white px-3 py-2 rounded hover:bg-gray-700 text-sm sm:text-base inline-flex items-center gap-2" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              Track New Package
+            <% end %>
+      </div>
+    <% end %>
+  </div>
+  <div class="bg-white p-2">
+    <%= paginate @in_transit_packages %>
+  </div>  
+</div>
+
+

@@ -1,10 +1,73 @@
-<div>
-  <h1 class="font-bold text-4xl">Dashboard#index</h1>
-  <p>Find me in app/views/dashboard/index.html.erb</p>
+<div class="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-64 h-auto md:h-screen bg-gray-50 flex flex-col overflow-y-auto md:overflow-hidden pb-6">
+
+  <%# <h1 class="text-2xl font-semibold mb-4 text-gray-800">Dashboard</h1> %>
+
+  <!-- Responsive Grid Layout -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 flex-1 md:h-full">
+    
+    <!-- Clock + Weather -->
+    <div class="row-span-1 md:row-span-2">
+      <div class="min-h-[10rem] p-6 border bg-white rounded-md shadow-sm flex flex-col lg:flex-row gap-4 h-full">
+        
+        <!-- Clock -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center h-full px-4">
+          <div class="w-full h-full flex flex-col justify-center">
+            <%= render "home_clock" %>
+          </div>
+        </div>
+
+        <!-- Weather -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center h-full px-4">
+          <div class="w-full h-full flex flex-col justify-center">
+            <%= render "current_weather", fixed_height: "h-full p-0" %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Currency Conversion -->
+    <div class="row-span-1 md:row-span-2 md:col-start-1 md:row-start-3">
+      <div class="min-h-[10rem] border bg-white rounded-md shadow-sm flex flex-col h-full">
+        <div class="flex justify-between items-center p-4 bg-white">
+          <h2 class="text-lg font-semibold text-gray-800">Currency Conversion</h2>
+        </div>
+        <hr class="border-gray-300">
+        <div class="flex-1 p-4">
+          <%= render "currency_converter", currency_list: @currency_list %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remittance Centers -->
+    <div class="row-span-1 md:row-span-4 md:col-start-2 md:row-start-1">
+      <div class="min-h-[20rem] md:h-full border bg-white rounded-md shadow-sm flex flex-col">
+        <div class="flex justify-between items-center p-4 bg-white">
+          <h2 class="text-lg font-semibold text-gray-800">Nearby Remittance Centers</h2>
+          <%= link_to "View All", remittance_centers_path, class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+        </div>
+        <hr class="border-gray-300">
+        <div class="flex-1 ">
+          <%= render "remittance_centers", locals: { remittance_centers: @remittance_centers } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Tracker -->
+    <div class="col-span-1 md:col-span-2 row-span-1 md:row-span-3 md:row-start-5">
+      <div class="border bg-white rounded-md shadow-sm flex flex-col h-full min-h-[20rem]">
+        <!-- Header -->
+        <div class="flex justify-between items-center px-6 py-4 bg-white rounded-t-md">
+          <h2 class="text-lg font-semibold text-gray-800">Package Tracker</h2>
+          <%= link_to "View All", packages_path, class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+        </div>
+        <hr class="border-gray-300">
+
+        <!-- Direct content -->
+        <div class="flex-1 p-6">
+          <%= render "packages/in_transit_packages", packages: @packages %>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-<!-- Temporary Logout Button -->
-<%= link_to "Logout", destroy_user_session_path, 
-    data: { "turbo-method": :delete, turbo_confirm: "Are you sure?" } %> </br>
-
-<%= link_to "Package Tracker", packages_path %>

@@ -1,0 +1,581 @@
+<div class="currency-converter-container">
+ <!-- Conversion Result Display (Always Visible) -->
+  <div id="conversion-display-card" class="hidden">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6 lg:p-8 text-center lg:text-left my-8 mx-6 transition-all duration-200 lg:flex lg:items-center lg:justify-between">
+      <!-- Left Side: Rate and Timestamp -->
+      <div class="lg:flex-1">
+        <!-- Rate Display -->
+        <div class="text-lg sm:text-xl lg:text-2xl font-semibold text-blue-800 mb-2 sm:mb-3 lg:mb-1" id="main-conversion-display"></div>
+        
+        <!-- Timestamp -->
+        <div class="text-xs sm:text-sm lg:text-sm text-blue-600 mb-4 sm:mb-6 lg:mb-0" id="main-conversion-timestamp"></div>
+      </div>
+      
+      <!-- Right Side: Edit Button -->
+      <div class="lg:flex-shrink-0 lg:ml-6">
+        <button id="edit-conversion-btn" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 sm:py-2 sm:px-6 lg:py-2 lg:px-6 rounded-md transition duration-200 text-sm sm:text-base shadow-sm w-full sm:w-auto">
+          <span class="hidden sm:inline">Edit Conversion</span>
+          <span class="sm:hidden">Edit</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial State (When no conversion exists) -->
+  <div id="initial-setup" class="text-center py-6">
+    <div class="text-gray-600 mb-4">Set up your currency conversion</div>
+    <button id="setup-conversion-btn" 
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
+      Setup Currency Conversion
+    </button>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div id="conversion-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-gray-800">Currency Conversion</h3>
+        <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-xl font-bold">
+          &times;
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="space-y-4">
+        <!-- From Currency -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">From</label>
+          <%= render "currency_dropdown", 
+              name: "from_currency", 
+              currency_list: currency_list, 
+              css_class: "from-currency-dropdown" %>
+        </div>
+
+        <!-- To Currency -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">To</label>
+          <%= render "currency_dropdown", 
+              name: "to_currency", 
+              currency_list: currency_list, 
+              css_class: "to-currency-dropdown" %>
+        </div>
+
+        <!-- Convert Button -->
+        <div class="flex justify-center pt-4">
+          <button id="convert-btn" 
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                  disabled>
+            <span class="convert-text">Convert</span>
+            <span class="loading-text hidden">Converting...</span>
+          </button>
+        </div>
+
+        <!-- Modal Error Message -->
+        <div id="modal-conversion-error" class="hidden">
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <div class="text-red-800" id="modal-error-message"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Error Message (Outside Modal) -->
+  <div id="conversion-error" class="hidden mt-4">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+      <div class="text-red-800" id="error-message"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+class CurrencyConverter {
+  constructor() {
+    this.initialized = false;
+    this.fromCurrency = '';
+    this.toCurrency = '';
+    this.boundHandlers = {};
+    
+    // Initialize immediately
+    this.init();
+  }
+
+  init() {
+    // Prevent double initialization
+    if (this.initialized) {
+      this.cleanup();
+    }
+
+    const convertBtn = document.getElementById('convert-btn');
+    if (!convertBtn) return;
+
+    this.cacheElements();
+    this.bindEvents();
+    this.loadSavedConversion();
+    this.initialized = true;
+    
+    console.log('Currency converter initialized');
+  }
+
+  cacheElements() {
+    this.elements = {
+      convertBtn: document.getElementById('convert-btn'),
+      conversionDisplayCard: document.getElementById('conversion-display-card'),
+      initialSetup: document.getElementById('initial-setup'),
+      conversionModal: document.getElementById('conversion-modal'),
+      mainConversionDisplay: document.getElementById('main-conversion-display'),
+      mainConversionTimestamp: document.getElementById('main-conversion-timestamp'),
+      editConversionBtn: document.getElementById('edit-conversion-btn'),
+      setupConversionBtn: document.getElementById('setup-conversion-btn'),
+      closeModalBtn: document.getElementById('close-modal-btn'),
+      modalConversionError: document.getElementById('modal-conversion-error'),
+      modalErrorMessage: document.getElementById('modal-error-message'),
+      conversionError: document.getElementById('conversion-error'),
+      errorMessage: document.getElementById('error-message')
+    };
+  }
+
+  bindEvents() {
+    // Remove existing listeners first
+    this.cleanup();
+
+    // Create bound handlers
+    this.boundHandlers = {
+      setupClick: this.openModal.bind(this),
+      editClick: this.openModal.bind(this),
+      closeClick: this.closeModal.bind(this),
+      convertClick: this.handleConvertClick.bind(this),
+      modalClick: this.handleModalClick.bind(this),
+      documentClick: this.handleDocumentClick.bind(this),
+      keydown: this.handleKeydown.bind(this)
+    };
+
+    // Add event listeners
+    if (this.elements.setupConversionBtn) {
+      this.elements.setupConversionBtn.addEventListener('click', this.boundHandlers.setupClick);
+    }
+    
+    if (this.elements.editConversionBtn) {
+      this.elements.editConversionBtn.addEventListener('click', this.boundHandlers.editClick);
+    }
+    
+    if (this.elements.closeModalBtn) {
+      this.elements.closeModalBtn.addEventListener('click', this.boundHandlers.closeClick);
+    }
+    
+    if (this.elements.convertBtn) {
+      this.elements.convertBtn.addEventListener('click', this.boundHandlers.convertClick);
+    }
+    
+    if (this.elements.conversionModal) {
+      this.elements.conversionModal.addEventListener('click', this.boundHandlers.modalClick);
+    }
+
+    // Document-level event listeners (using event delegation)
+    document.addEventListener('click', this.boundHandlers.documentClick);
+    document.addEventListener('keydown', this.boundHandlers.keydown);
+  }
+
+  cleanup() {
+    // Remove document-level listeners if they exist
+    if (this.boundHandlers.documentClick) {
+      document.removeEventListener('click', this.boundHandlers.documentClick);
+    }
+    if (this.boundHandlers.keydown) {
+      document.removeEventListener('keydown', this.boundHandlers.keydown);
+    }
+
+    // Remove element-specific listeners
+    if (this.elements) {
+      Object.entries(this.boundHandlers).forEach(([key, handler]) => {
+        if (key === 'documentClick' || key === 'keydown') return;
+        
+        const elementKey = key.replace('Click', '');
+        const element = this.elements[elementKey + 'Btn'] || this.elements[elementKey];
+        if (element && handler) {
+          element.removeEventListener('click', handler);
+        }
+      });
+    }
+  }
+
+  handleDocumentClick(e) {
+    // Handle dropdown option clicks
+    if (e.target.classList.contains('option')) {
+      this.handleOptionClick(e);
+      return;
+    }
+
+    // Handle dropdown toggle clicks
+    if (e.target.closest('.selected')) {
+      this.handleDropdownToggle(e);
+      return;
+    }
+
+    // Close dropdowns when clicking outside
+    if (!e.target.closest('.custom-dropdown')) {
+      this.closeAllDropdowns();
+    }
+  }
+
+  handleOptionClick(e) {
+    const dropdown = e.target.closest('.custom-dropdown');
+    if (!dropdown) return;
+    
+    const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+    const selected = dropdown.querySelector('.selected span');
+    const currencyCode = e.target.getAttribute('data-value');
+    const currencyName = e.target.getAttribute('data-name');
+    const flagSrc = e.target.getAttribute('data-flag');
+
+    // Update display
+    selected.innerHTML = `
+      <div class="flex items-center gap-2">
+        <img src="${flagSrc}" alt="${currencyName}" class="w-5 h-4">
+        <span>${currencyCode}</span>
+      </div>
+    `;
+    
+    // Update hidden input
+    hiddenInput.value = currencyCode;
+
+    // Update currency variables
+    if (hiddenInput.name === 'from_currency') {
+      this.fromCurrency = currencyCode;
+    } else if (hiddenInput.name === 'to_currency') {
+      this.toCurrency = currencyCode;
+    }
+
+    // Enable convert button if both currencies are selected
+    this.checkConvertButton();
+    
+    // Hide dropdown
+    dropdown.querySelector('.options').classList.add('hidden');
+  }
+
+  handleDropdownToggle(e) {
+    const dropdown = e.target.closest('.custom-dropdown');
+    if (!dropdown) return;
+    
+    const options = dropdown.querySelector('.options');
+    
+    // Close other dropdowns
+    document.querySelectorAll('.custom-dropdown .options').forEach(opt => {
+      if (opt !== options) {
+        opt.classList.add('hidden');
+      }
+    });
+    
+    // Toggle current dropdown
+    options.classList.toggle('hidden');
+  }
+
+  closeAllDropdowns() {
+    document.querySelectorAll('.custom-dropdown .options').forEach(opt => {
+      opt.classList.add('hidden');
+    });
+  }
+
+  handleKeydown(e) {
+    if (e.key === 'Escape' && this.elements.conversionModal && !this.elements.conversionModal.classList.contains('hidden')) {
+      this.closeModal();
+    }
+  }
+
+  handleModalClick(e) {
+    if (e.target === this.elements.conversionModal) {
+      this.closeModal();
+    }
+  }
+
+  handleConvertClick() {
+    if (!this.fromCurrency || !this.toCurrency) return;
+    this.performConversion();
+  }
+
+  openModal() {
+    if (this.elements.conversionModal) {
+      this.elements.conversionModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      if (this.elements.modalConversionError) {
+        this.elements.modalConversionError.classList.add('hidden');
+      }
+    }
+  }
+
+  closeModal() {
+    if (this.elements.conversionModal) {
+      this.elements.conversionModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  showConversionResult(rate, timestamp) {
+    if (this.elements.mainConversionDisplay) {
+      this.elements.mainConversionDisplay.textContent = `1 ${this.fromCurrency} = ${rate} ${this.toCurrency}`;
+    }
+    if (this.elements.mainConversionTimestamp) {
+      this.elements.mainConversionTimestamp.textContent = `Last updated: ${timestamp}`;
+    }
+    if (this.elements.conversionDisplayCard) {
+      this.elements.conversionDisplayCard.classList.remove('hidden');
+    }
+    if (this.elements.initialSetup) {
+      this.elements.initialSetup.classList.add('hidden');
+    }
+  }
+
+  showInitialSetup() {
+    if (this.elements.conversionDisplayCard) {
+      this.elements.conversionDisplayCard.classList.add('hidden');
+    }
+    if (this.elements.initialSetup) {
+      this.elements.initialSetup.classList.remove('hidden');
+    }
+  }
+
+  checkConvertButton() {
+    if (this.elements.convertBtn) {
+      if (this.fromCurrency && this.toCurrency && this.fromCurrency !== this.toCurrency) {
+        this.elements.convertBtn.disabled = false;
+      } else {
+        this.elements.convertBtn.disabled = true;
+      }
+    }
+  }
+
+  performConversion() {
+    if (!this.elements.convertBtn) return;
+
+    // Show loading state
+    this.elements.convertBtn.disabled = true;
+    const convertText = document.querySelector('.convert-text');
+    const loadingText = document.querySelector('.loading-text');
+    
+    if (convertText) convertText.classList.add('hidden');
+    if (loadingText) loadingText.classList.remove('hidden');
+    
+    // Hide previous errors
+    if (this.elements.modalConversionError) {
+      this.elements.modalConversionError.classList.add('hidden');
+    }
+    if (this.elements.conversionError) {
+      this.elements.conversionError.classList.add('hidden');
+    }
+
+    const csrfToken = document.querySelector('[name="csrf-token"]')?.content;
+    
+    // Make API call
+    fetch('/dashboard/convert_currency', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+      },
+      body: JSON.stringify({
+        from_currency: this.fromCurrency,
+        to_currency: this.toCurrency
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const timestamp = new Date().toLocaleString();
+        
+        // Show result in main display
+        this.showConversionResult(data.rate, timestamp);
+        
+        // Save conversion to localStorage
+        this.saveConversion(this.fromCurrency, this.toCurrency, data.rate);
+        
+        // Close modal
+        this.closeModal();
+      } else {
+        // Display error in modal
+        if (this.elements.modalErrorMessage) {
+          this.elements.modalErrorMessage.textContent = data.error || 'Conversion failed. Please try again.';
+        }
+        if (this.elements.modalConversionError) {
+          this.elements.modalConversionError.classList.remove('hidden');
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Conversion error:', error);
+      if (this.elements.modalErrorMessage) {
+        this.elements.modalErrorMessage.textContent = 'Network error. Please check your connection and try again.';
+      }
+      if (this.elements.modalConversionError) {
+        this.elements.modalConversionError.classList.remove('hidden');
+      }
+    })
+    .finally(() => {
+      // Reset button state
+      if (this.elements.convertBtn) {
+        this.elements.convertBtn.disabled = false;
+      }
+      if (convertText) convertText.classList.remove('hidden');
+      if (loadingText) loadingText.classList.add('hidden');
+      this.checkConvertButton();
+    });
+  }
+
+  saveConversion(from, to, rate) {
+    const conversionData = {
+      from_currency: from,
+      to_currency: to,
+      rate: rate,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('last_currency_conversion', JSON.stringify(conversionData));
+  }
+
+  loadSavedConversion() {
+    const saved = localStorage.getItem('last_currency_conversion');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        this.fromCurrency = data.from_currency;
+        this.toCurrency = data.to_currency;
+        
+        // Set the dropdowns to saved values
+        this.setDropdownValue('from_currency', data.from_currency);
+        this.setDropdownValue('to_currency', data.to_currency);
+        
+        // Show the result immediately with saved data
+        const savedTimestamp = new Date(data.timestamp).toLocaleString();
+        this.showConversionResult(data.rate, savedTimestamp);
+        
+        // Auto-convert with fresh rate in the background
+        if (this.fromCurrency && this.toCurrency) {
+          setTimeout(() => {
+            this.performConversionSilently();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Error loading saved conversion:', error);
+        this.showInitialSetup();
+      }
+    } else {
+      this.showInitialSetup();
+    }
+  }
+
+  performConversionSilently() {
+    const csrfToken = document.querySelector('[name="csrf-token"]')?.content;
+    
+    // Make API call without showing loading states
+    fetch('/dashboard/convert_currency', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+      },
+      body: JSON.stringify({
+        from_currency: this.fromCurrency,
+        to_currency: this.toCurrency
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const timestamp = new Date().toLocaleString();
+        
+        // Update the display with fresh rate
+        this.showConversionResult(data.rate, timestamp);
+        
+        // Save fresh conversion to localStorage
+        this.saveConversion(this.fromCurrency, this.toCurrency, data.rate);
+      }
+    })
+    .catch(error => {
+      console.error('Silent conversion error:', error);
+      // Don't show error for silent updates
+    });
+  }
+
+  setDropdownValue(inputName, currencyCode) {
+    const dropdown = document.querySelector(`input[name="${inputName}"]`)?.closest('.custom-dropdown');
+    if (!dropdown) return;
+    
+    const option = dropdown.querySelector(`[data-value="${currencyCode}"]`);
+    
+    if (option) {
+      const selected = dropdown.querySelector('.selected span');
+      const flagSrc = option.getAttribute('data-flag');
+      const currencyName = option.getAttribute('data-name');
+      
+      if (selected) {
+        selected.innerHTML = `
+          <div class="flex items-center gap-2">
+            <img src="${flagSrc}" alt="${currencyName}" class="w-5 h-4">
+            <span>${currencyCode}</span>
+          </div>
+        `;
+      }
+      
+      const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+      if (hiddenInput) {
+        hiddenInput.value = currencyCode;
+      }
+    }
+  }
+}
+
+// Global instance
+let currencyConverterInstance = null;
+
+// Initialize function
+function initializeCurrencyConverter() {
+  // Clean up existing instance
+  if (currencyConverterInstance) {
+    currencyConverterInstance.cleanup();
+    currencyConverterInstance = null;
+  }
+
+  // Create new instance if elements exist
+  if (document.getElementById('convert-btn')) {
+    currencyConverterInstance = new CurrencyConverter();
+  }
+}
+
+// Global function for manual re-initialization
+window.reinitializeCurrencyConverter = function() {
+  setTimeout(initializeCurrencyConverter, 100);
+};
+
+// Event listeners for different scenarios
+document.addEventListener('DOMContentLoaded', initializeCurrencyConverter);
+document.addEventListener('turbo:load', initializeCurrencyConverter);
+document.addEventListener('turbo:render', initializeCurrencyConverter);
+document.addEventListener('turbo:frame-load', initializeCurrencyConverter);
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    setTimeout(initializeCurrencyConverter, 100);
+  }
+});
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', initializeCurrencyConverter);
+
+// For non-Turbo applications
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted) {
+    setTimeout(initializeCurrencyConverter, 100);
+  }
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+  if (currencyConverterInstance) {
+    currencyConverterInstance.cleanup();
+  }
+});
+
+// Initialize immediately if elements are already present
+setTimeout(initializeCurrencyConverter, 100);
+</script>

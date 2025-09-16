@@ -22,6 +22,7 @@
       body,
       html {
         height: 100dvh;
+        scroll-behavior: smooth;  
       }
 
       .fade-in {
@@ -46,230 +47,347 @@
         letter-spacing: -0.02em;
         font-weight: 600;
       }
+
+      /* Scroll Animation Styles */
+      .animate-on-scroll {
+        opacity: 0;
+        transition: all 0.8s ease-out;
+      }
+
+      .animate-on-scroll.animate {
+        opacity: 1;
+      }
+
+      /* Fade Up Animation */
+      .fade-up {
+        transform: translateY(50px);
+      }
+      .fade-up.animate {
+        transform: translateY(0);
+      }
+
+      /* Scale Animation */
+      .scale-in {
+        transform: scale(0.8);
+      }
+      .scale-in.animate {
+        transform: scale(1);
+      }
+
+      /* Slide In Animations */
+      .slide-left {
+        transform: translateX(-50px);
+      }
+      .slide-left.animate {
+        transform: translateX(0);
+      }
+
+      .slide-right {
+        transform: translateX(50px);
+      }
+      .slide-right.animate {
+        transform: translateX(0);
+      }
+
+      .slide-up {
+        transform: translateY(50px);
+      }
+      .slide-up.animate {
+        transform: translateY(0);
+      }
+
+      /* Staggered Animation Delays */
+      .stagger-1 { transition-delay: 0.1s; }
+      .stagger-2 { transition-delay: 0.2s; }
+      .stagger-3 { transition-delay: 0.3s; }
+      .stagger-4 { transition-delay: 0.4s; }
+      .stagger-5 { transition-delay: 0.5s; }
+      .stagger-6 { transition-delay: 0.6s; }
     </style>
 </head>
+
 <body class="bg-white text-gray-800 font-light">
-  <!-- Navigation -->
-  <nav class="container mx-auto px-6 py-6 fade-in delay-1">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <svg class="h-8 w-8 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path>
-        </svg>
-        <span class="ml-3 text-xl tracking-tight font-bold">OFW Companion</span>
-      </div>
-      <div class="hidden lg:flex space-x-10 text-sm text-gray-600">
-        <a href="#home" class="hover:text-blue-600 transition-colors">Home</a>
-        <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
-        <a href="#testimonials" class="hover:text-blue-600 transition-colors">Testimonials</a>
-        <a href="#faqs" class="hover:text-blue-600 transition-colors">FAQs</a>
-      </div>
-      <div class="flex gap-2">
-        <%= link_to "Log In", new_user_session_path, class: "text-sm text-white bg-blue-600 rounded-md px-4 py-2 hover:bg-blue-700 transition-all" %>
-        <%= link_to "Sign Up", new_user_registration_path, class: "text-sm border border-gray-300 rounded-md px-4 py-2 hover:bg-blue-50 transition-all" %>
-      </div>
+<!-- Navigation -->
+<nav class="relative z-50 bg-white shadow fade-in delay-1">
+  <div class="container mx-auto px-6 py-6 h-[80px] flex items-center justify-between">
+    <!-- Logo -->
+    <div class="flex items-center">
+      <%= image_tag "ofw-companion-logo.svg", alt: "ofw-logo", class: "w-12 h-12" %>
+      <span class="ml-2 text-xl tracking-tight font-bold">OFW Companion</span>
     </div>
-  </nav>
 
-  <!-- Hero -->
-  <div class="relative overflow-hidden" id="home">
-    <div class="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-white to-white z-0"></div>
-    
-    <div class="container mx-auto px-6 py-16 md:py-24 relative z-10 fade-in delay-2">
-      <div class="flex flex-col md:flex-row items-center">
-        <div class="md:w-1/2 mb-12 md:mb-0 md:pr-12">
-          <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter mb-6 leading-tight">
-            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-red-600">OFW’s </span> trusted companion abroad
-          </h1>
-          <p class="text-gray-600 text-xl md:text-2xl mb-8 max-w-lg font-extralight tracking-wide">
-            Build, track, and manage your projects with a seamless platform designed for modern teams.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4">
-            <%= link_to "Get started", new_user_registration_path, class: "bg-blue-600 text-white font-light rounded-md px-6 py-3 hover:bg-blue-700 transition-all" %>
-            <%= link_to "Log In", new_user_session_path, class: "bg-transparent border border-gray-300 text-gray-700 rounded-md px-6 py-3 hover:bg-blue-50 transition-all" %>
-          </div>
+    <!-- Desktop Nav -->
+    <div class="hidden lg:flex space-x-10 text-sm text-gray-600">
+      <a href="#home" class="hover:text-blue-600 transition-colors">Home</a>
+      <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
+      <a href="#testimonials" class="hover:text-blue-600 transition-colors">Testimonials</a>
+      <a href="#faqs" class="hover:text-blue-600 transition-colors">FAQs</a>
+    </div>
+
+    <!-- Desktop Auth -->
+    <div class="hidden lg:flex gap-2">
+      <%= link_to "Log In", new_user_session_path, class: "text-sm text-white bg-blue-600 rounded-md px-4 py-2 hover:bg-blue-700 transition-all" %>
+      <%= link_to "Sign Up", new_user_registration_path, class: "text-sm border border-gray-300 rounded-md px-4 py-2 hover:bg-blue-50 transition-all" %>
+    </div>
+
+    <!-- Mobile Burger -->
+    <button id="menu-toggle" class="lg:hidden flex items-center text-gray-700 focus:outline-none">
+      <i data-lucide="menu" class="w-8 h-8"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Dropdown -->
+  <div id="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-white shadow-md p-4 space-y-4 lg:hidden z-40">
+    <a href="#home" class="block text-gray-700 hover:text-blue-600">Home</a>
+    <a href="#features" class="block text-gray-700 hover:text-blue-600">Features</a>
+    <a href="#testimonials" class="block text-gray-700 hover:text-blue-600">Testimonials</a>
+    <a href="#faqs" class="block text-gray-700 hover:text-blue-600">FAQs</a>
+    <div class="pt-4 border-t">
+      <%= link_to "Log In", new_user_session_path, class: "block w-full text-center text-white bg-blue-600 rounded-md px-4 py-2 hover:bg-blue-700 transition-all mb-2" %>
+      <%= link_to "Sign Up", new_user_registration_path, class: "block w-full text-center border border-gray-300 rounded-md px-4 py-2 hover:bg-blue-50 transition-all" %>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div id="home" class="relative overflow-hidden mt-[80px] sm:mt-0 md:h-[calc(100vh-80px)]">
+
+  <div class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-indigo-100 from-60% via-blue-50 via-40% to-slate-50 z-0"></div>
+
+  <div class="container mx-auto px-6 h-full flex items-center relative z-10 fade-in delay-2">
+    <div class="flex flex-col md:flex-row items-center w-full">
+      <div class="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tighter mb-6 leading-tight">
+          OFW's trusted companion abroad
+        </h1>
+        <p class="text-gray-600 text-xl md:text-2xl mb-8 max-w-lg font-extralight tracking-wide">
+          Simplify your journey overseas with a caring companion designed to guide and support you wherever you go.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <%= link_to "Get started", new_user_registration_path, class: "bg-blue-600 text-white font-light rounded-md px-6 py-3 hover:bg-blue-700 transition-all text-center" %>
+          <%= link_to "Log In", new_user_session_path, class: "bg-transparent border border-gray-300 text-gray-700 rounded-md px-6 py-3 hover:bg-blue-50 transition-all text-center" %>
         </div>
-        
-        <!-- Image -->
-        <div class="md:w-1/2 relative fade-in delay-1">
-          <div class="relative h-[500px] w-[500px] mx-auto">
-            <!--
-            <img src="./filipinos-svg.svg" alt="OFW illustration"/>
-            -->
-            <%= image_tag "filipinos-svg.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
-          </div>
+      </div>
+      
+      <!-- Image -->
+      <div class="md:w-1/2 relative fade-in delay-1">
+        <div class="relative lg:h-[500px] lg:w-[500px] mx-auto">
+          <%= image_tag "filipinos-svg.svg", alt: "Currency Conversion", class: "mx-auto" %>
         </div>
       </div>
     </div>
   </div>
+</div>
 
- <!-- Features -->
-<section id="features" class="container mx-auto px-6 py-20 fade-in delay-2" id="features">
-  <h2 class="text-3xl md:text-4xl font-semibold text-center mb-12">Everything You Need, All in One Place</h2>
-  
-  <div class="grid md:grid-cols-3 gap-10 text-center">
+<!-- Partnerships / Credibility -->
+<section id="credibility" class="bg-white py-12">
+  <div class="container mx-auto px-6 text-center">
     
-    <!-- Feature 1 -->
-    <div class="p-6 border rounded-lg shadow-sm">
-      <h3 class="text-xl font-medium mb-3 text-gray-800">Real-Time Currency Conversion</h3>
-      <p class="text-gray-600 mb-4">
-        Instantly check live exchange rates and convert PHP into the currency you need—fast, accurate, and always up to date.
+    <!-- Headline -->
+    <div class="animate-on-scroll fade-up">
+      <h2 class="text-xl md:text-2xl font-medium text-gray-700 mb-4">
+        Trusted by <span class="font-semibold text-blue-600">10,000+ OFWs worldwide</span>
+      </h2>
+      <p class="text-gray-500 mb-8">
+        In partnership with the following companies
       </p>
-      <!-- Graphic/Icon slot -->
+    </div>
 
-      <!--
-      <img src="/currency-graphic.svg" alt="Currency Conversion" class="mx-auto w-64 h-64">
-      -->
-      <%= image_tag "currency-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
-    </div>
-    
-    <!-- Feature 2 -->
-    <div class="p-6 border rounded-lg shadow-sm">
-      <h3 class="text-xl font-medium mb-3 text-gray-800">Remittance Center Locator</h3>
-      <p class="text-gray-600 mb-4">
-        Find the closest and most reliable remittance centers near you, no matter where you are in the world.
-      </p>
-      <!-- Graphic/Icon slot -->
-      <!--
-      <img src="./maps-graphic.svg" alt="Remittance Locator" class="mx-auto w-64 h-64">
-      -->
-      <%= image_tag "maps-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
-    </div>
-    
-    <!-- Feature 3 -->
-    <div class="p-6 border rounded-lg shadow-sm">
-      <h3 class="text-xl font-medium mb-3 text-gray-800">Seamless Package Tracking</h3>
-      <p class="text-gray-600 mb-4">
-        Stay worry-free by tracking your shipments in real time—know exactly where your package is, from sender to doorstep.
-      </p>
-      <!-- Graphic/Icon slot -->
-      <!--
-      <img src="./package-graphic.svg" alt="Package Tracking" class="mx-auto w-64 h-64">
-      -->
-      <%= image_tag "package-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
-    </div>
-    
-  </div>
-</section>
+    <!-- Logos Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center justify-center">
 
+      <!-- Google Maps -->
+      <div class="flex items-center justify-center animate-on-scroll fade-up stagger-1">
+        <%= image_tag "partner-logos/google-maps.svg", alt: "Google Maps", class: "w-36 h-20" %>
+      </div>
 
-<section class="container mx-auto px-6 py-16" id="testimonials">
-  <h2 class="text-3xl md:text-4xl font-semibold text-center mb-12">What our users say</h2>
-  
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 auto-rows-auto">
-    
-    <!-- Card 1 - Large (Maria) -->
-    <div class="md:col-span-2 md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-1 flex flex-col justify-between">
-      <div>
-        <p class="text-gray-700 mb-4">"This platform completely changed how I manage my work abroad. From sending money to my family to staying updated with important news, everything is so smooth and stress-free. Highly recommended for every OFW!"</p>
+      <!-- Western Union -->
+      <div class="flex items-center justify-center animate-on-scroll fade-up stagger-2">
+        <%= image_tag "partner-logos/western-union.svg", alt: "Western Union", class: "w-36 h-20" %>
       </div>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/6221441/pexels-photo-6221441.jpeg" alt="Maria" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">Maria, Dubai</p>
-          <div class="flex text-yellow-400 text-sm">
-            ★★★★☆
-          </div>
-        </div>
+
+       <!-- LBC -->
+      <div class="flex items-center justify-center animate-on-scroll fade-up stagger-3">
+        <%= image_tag "partner-logos/lbc.svg", alt: "LBC Express", class: "w-36 h-20" %>
       </div>
+
+      <!-- DHL -->
+      <div class="flex items-center justify-center animate-on-scroll fade-up stagger-4">
+        <%= image_tag "partner-logos/dhl.svg", alt: "DHL", class: "w-36 h-20" %>
+      </div>
+
+      <!-- MoneyGram -->
+      <div class="flex items-center justify-center animate-on-scroll fade-up stagger-5">
+        <%= image_tag "partner-logos/moneygram.svg", alt: "MoneyGram", class: "w-36 h-20" %>
+      </div>
+
     </div>
-    
-    <!-- Card 2 (Matthew) -->
-    <div class="bg-white p-6 rounded-2xl shadow fade-in delay-2 flex flex-col justify-between">
-      <p class="text-gray-700 mb-4">"Super easy to use and reliable every time."</p>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/31625813/pexels-photo-31625813.jpeg" alt="Matthew" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">Matthew, Singapore</p>
-          <div class="flex text-yellow-400 text-sm">★★★★★</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Card 3 (Andrea) -->
-    <div class="bg-white p-6 rounded-2xl shadow fade-in delay-3 flex flex-col justify-between">
-      <p class="text-gray-700 mb-4">"Customer support was so helpful when I needed it most."</p>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/10876942/pexels-photo-10876942.jpeg" alt="Andrea" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">Andrea, Qatar</p>
-          <div class="flex text-yellow-400 text-sm">★★★★☆</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Card 4 (Ivan) -->
-    <div class="md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-4 flex flex-col justify-between">
-      <p class="text-gray-700 mb-4">"Feels like I’m always connected to home, no matter where I am. I use this platform daily to send money and check updates—it gives me peace of mind knowing my family is taken care of quickly and safely."</p>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/20849745/pexels-photo-20849745.jpeg" alt="Ivan" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">Ivan, Japan</p>
-          <div class="flex text-yellow-400 text-sm">★★★★★</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Card 5 (Anna) -->
-    <div class="md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-5 flex flex-col justify-between">
-      <p class="text-gray-700 mb-4">"Super smooth experience, I love the design! I never worry about delays or errors anymore—everything just works perfectly, and the interface makes it so enjoyable to use."</p>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/1288171/pexels-photo-1288171.jpeg" alt="Anna" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">Anna, UK</p>
-          <div class="flex text-yellow-400 text-sm">★★★★☆</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Card 6 - Wide (James) -->
-    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-6 flex flex-col justify-between">
-      <p class="text-gray-700 mb-4">"Best platform for OFWs—fast, secure, and reliable. I’ve tried several services before, but this one really stands out. It feels built for people like us, and it helps me support my family back home without any stress."</p>
-      <div class="flex items-center mt-4">
-        <img src="https://images.pexels.com/photos/5600268/pexels-photo-5600268.jpeg" alt="James" class="w-12 h-12 rounded-full mr-3 object-cover">
-        <div>
-          <p class="font-semibold text-gray-900">James, Canada</p>
-          <div class="flex text-yellow-400 text-sm">★★★★★</div>
-        </div>
-      </div>
-    </div>
-    
   </div>
 </section>
 
+<!-- Features -->
+<section id="features" class="bg-white py-20">
+  <div class="container mx-auto px-6">
+    <div class="animate-on-scroll fade-up">
+      <h2 class="text-3xl md:text-4xl font-semibold text-center mb-12">
+        Everything You Need, All in One Place
+      </h2>
+    </div>
 
+    <div class="grid md:grid-cols-3 gap-10 text-center">
+      
+      <!-- Feature 1 -->
+      <div class="p-6 border rounded-lg shadow-sm bg-gray-50 animate-on-scroll scale-in stagger-1">
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Real-Time Currency Conversion</h3>
+        <p class="text-gray-600 mb-4">
+          Instantly check live exchange rates and convert PHP into the currency you need—fast, accurate, and always up to date.
+        </p>
+        <%= image_tag "currency-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
+      </div>
+      
+      <!-- Feature 2 -->
+      <div class="p-6 border rounded-lg shadow-sm bg-gray-50 animate-on-scroll scale-in stagger-2">
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Remittance Center Locator</h3>
+        <p class="text-gray-600 mb-4">
+          Find the closest and most reliable remittance centers near you, no matter where you are in the world.
+        </p>
+        <%= image_tag "maps-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
+      </div>
+      
+      <!-- Feature 3 -->
+      <div class="p-6 border rounded-lg shadow-sm bg-gray-50 animate-on-scroll scale-in stagger-3">
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Seamless Package Tracking</h3>
+        <p class="text-gray-600 mb-4">
+          Stay worry-free by tracking your shipments in real time—know exactly where your package is, from sender to doorstep.
+        </p>
+        <%= image_tag "package-graphic.svg", alt: "Currency Conversion", class: "mx-auto w-64 h-64" %>
+      </div>
 
+    </div>
+  </div>
+</section>
 
+<section class="bg-gray-50 px-6 py-16" id="testimonials">
+  <div class="container mx-auto animate-on-scroll fade-up">
+    <h2 class="text-3xl md:text-4xl font-semibold text-center mb-12">What our users say</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 auto-rows-auto">
+      
+      <!-- Card 1 - Large (Maria) -->
+      <div class="md:col-span-2 md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-1 flex flex-col justify-between animate-on-scroll slide-left stagger-1">
+        <div>
+          <p class="text-gray-700 mb-4">"This platform makes life abroad so much easier. From checking forex rates to finding the nearest remittance center and tracking my packages, everything is simple and stress-free. Highly recommended for every OFW!"</p>
+        </div>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/6221441/pexels-photo-6221441.jpeg" alt="Maria" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">Maria, Dubai</p>
+            <div class="flex text-yellow-400 text-sm">★★★★☆</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 2 (Matthew) -->
+      <div class="bg-white p-6 rounded-2xl shadow fade-in delay-2 flex flex-col justify-between animate-on-scroll slide-up stagger-2">
+        <p class="text-gray-700 mb-4">"Super easy to use and reliable every time."</p>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/31625813/pexels-photo-31625813.jpeg" alt="Matthew" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">Matthew, Singapore</p>
+            <div class="flex text-yellow-400 text-sm">★★★★★</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 3 (Andrea) -->
+      <div class="bg-white p-6 rounded-2xl shadow fade-in delay-3 flex flex-col justify-between animate-on-scroll slide-up stagger-3">
+        <p class="text-gray-700 mb-4">"Tracked my different packages from different couriers in one app!"</p>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/10876942/pexels-photo-10876942.jpeg" alt="Andrea" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">Andrea, Qatar</p>
+            <div class="flex text-yellow-400 text-sm">★★★★☆</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 4 (Ivan) -->
+      <div class="md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-4 flex flex-col justify-between animate-on-scroll slide-right stagger-4">
+        <p class="text-gray-700 mb-4">"Feels like I’m always connected to home, no matter where I am. I use this app daily to check forex, track my packages, and find remittance centers nearby—it gives me peace of mind knowing I’m always prepared."</p>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/20849745/pexels-photo-20849745.jpeg" alt="Ivan" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">Ivan, Japan</p>
+            <div class="flex text-yellow-400 text-sm">★★★★★</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 5 (Anna) -->
+      <div class="md:row-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-5 flex flex-col justify-between animate-on-scroll slide-right stagger-5">
+        <p class="text-gray-700 mb-4">"Super smooth experience, I love the design! I never worry about delays or errors anymore—everything just works perfectly, and the interface makes it so enjoyable to use."</p>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/1288171/pexels-photo-1288171.jpeg" alt="Anna" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">Anna, UK</p>
+            <div class="flex text-yellow-400 text-sm">★★★★☆</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card 6 - Wide (James) -->
+      <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow fade-in delay-6 flex flex-col justify-between animate-on-scroll slide-up stagger-6">
+        <p class="text-gray-700 mb-4">"It’s rare to find an app that truly understands OFWs. This one gives me the convenience and peace of mind I’ve been looking for while living abroad."</p>
+        <div class="flex items-center mt-4">
+          <img src="https://images.pexels.com/photos/5600268/pexels-photo-5600268.jpeg" alt="James" class="w-12 h-12 rounded-full mr-3 object-cover">
+          <div>
+            <p class="font-semibold text-gray-900">James, Canada</p>
+            <div class="flex text-yellow-400 text-sm">★★★★★</div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
 
-  <!-- FAQs -->
-  <section id="faqs" class="container mx-auto px-6 py-20 fade-in delay-4" id="faq">
+<!-- FAQs -->
+<section id="faqs" class="container mx-auto px-6 py-20" id="faq">
+  <div class="animate-on-scroll fade-up">
     <h2 class="text-3xl md:text-4xl font-semibold text-center mb-12">Frequently Asked Questions</h2>
-    <div class="space-y-4 max-w-2xl mx-auto">
-      <details class="p-4 border rounded-lg cursor-pointer bg-white fade-in delay-1">
+  </div>
+  <div class="space-y-4 max-w-2xl mx-auto">
+    <div class="animate-on-scroll slide-up stagger-1">
+      <details class="p-4 border rounded-lg cursor-pointer bg-white">
         <summary class="font-semibold">How can I sign up?</summary>
-        <p class="mt-2 text-gray-600">Click the "Sign up" button at the top right and fill in your details. You can start using the app right away.</p>
+        <p class="mt-2 text-gray-600">Click the "Sign up" button at the top right and fill in your details. You can start using the app right away after confirming your email.</p>
       </details>
+    </div>
 
-      <details class="p-4 border rounded-lg cursor-pointer bg-white fade-in delay-2">
+    <div class="animate-on-scroll slide-up stagger-2">
+      <details class="p-4 border rounded-lg cursor-pointer bg-white">
         <summary class="font-semibold">Is my data safe?</summary>
         <p class="mt-2 text-gray-600">Yes. We use top-level encryption and comply with international data security standards.</p>
       </details>
+    </div>
 
-      <details class="p-4 border rounded-lg cursor-pointer bg-white fade-in delay-3">
+    <div class="animate-on-scroll slide-up stagger-3">
+      <details class="p-4 border rounded-lg cursor-pointer bg-white">
         <summary class="font-semibold">Does the app support multiple currencies?</summary>
         <p class="mt-2 text-gray-600">Absolutely! You can convert Philippine Peso (PHP) to your local currency in real time.</p>
       </details>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Footer -->
+<!-- Footer -->
 <footer class="bg-blue-500 text-white mt-20">
   <div class="container mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
 
     <!-- Logo -->
     <div class="flex justify-center md:justify-start items-center space-x-2">
-      <img src="your-logo.png" alt="OFW Companion Logo" class="w-10 h-10">
-      <span class="font-semibold text-lg">OFW Companion</span>
+      <%= image_tag "ofw-companion-logo.svg", alt: "ofw-logo", class: "w-12 h-12" %>
+      <span class="ml-2 text-xl tracking-tight font-bold">OFW Companion</span>
     </div>
 
     <!-- Navigation -->
@@ -282,8 +400,11 @@
 
     <!-- Auth Buttons -->
     <div class="flex justify-center md:justify-end space-x-4">
-      <a href="#" class="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 font-medium">Login</a>
-      <a href="#" class="px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-blue-600 font-medium">Sign Up</a>
+      <%= link_to "Login", new_user_session_path, 
+        class: "px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 font-medium" %>
+
+      <%= link_to "Sign Up", new_user_registration_path, 
+        class: "px-4 py-2 border border-white rounded-lg hover:bg-white hover:text-blue-600 font-medium" %>
     </div>
 
   </div>
@@ -294,6 +415,98 @@
   </div>
 </footer>
 
+<script>
+  // Function to initialize the mobile menu
+  function initializeMobileMenu() {
+    const menuToggle = document.getElementById("menu-toggle");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    if (menuToggle && mobileMenu) {
+      // Remove any existing event listeners
+      menuToggle.replaceWith(menuToggle.cloneNode(true));
+      const newMenuToggle = document.getElementById("menu-toggle");
+      
+      newMenuToggle.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        mobileMenu.classList.toggle("hidden");
+        
+        // Toggle icon between menu and X
+        const icon = newMenuToggle.querySelector('[data-lucide]');
+        if (mobileMenu.classList.contains('hidden')) {
+          icon.setAttribute('data-lucide', 'menu');
+        } else {
+          icon.setAttribute('data-lucide', 'x');
+        }
+        lucide.createIcons();
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!newMenuToggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+          mobileMenu.classList.add('hidden');
+          const icon = newMenuToggle.querySelector('[data-lucide]');
+          icon.setAttribute('data-lucide', 'menu');
+          lucide.createIcons();
+        }
+      });
+
+      // Close menu when clicking on menu links
+      const menuLinks = mobileMenu.querySelectorAll('a[href^="#"]');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+          const icon = newMenuToggle.querySelector('[data-lucide]');
+          icon.setAttribute('data-lucide', 'menu');
+          lucide.createIcons();
+        });
+      });
+    }
+  }
+
+  // Scroll Animation Logic
+  function initializeScrollAnimations() {
+    // Create an Intersection Observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Add the animate class when element is in viewport
+          entry.target.classList.add('animate');
+        } else {
+          // Optional: Remove animation when scrolling back up (uncomment if desired)
+          // entry.target.classList.remove('animate');
+        }
+      });
+    }, {
+      // Configuration options
+      threshold: 0.1, // Trigger when 10% of element is visible
+      rootMargin: '0px 0px -50px 0px' // Trigger 50px before element reaches bottom
+    });
+
+    // Observe all elements with class 'animate-on-scroll'
+    document.querySelectorAll('.animate-on-scroll').forEach(element => {
+      observer.observe(element);
+    });
+  }
+
+  // Wait for both DOM and Lucide to be ready
+  function waitForLucide() {
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      lucide.createIcons();
+      initializeMobileMenu();
+      initializeScrollAnimations();
+    } else {
+      setTimeout(waitForLucide, 100);
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForLucide);
+  } else {
+    waitForLucide();
+  }
+</script>
 
 </body>
 </html>

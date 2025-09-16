@@ -1,31 +1,64 @@
-# app/services/package_webhook_service.rb
 class PackageWebhookService
-  def initialize(tracking_number)
+  def initialize(tracking_number, payload = nil)
     @tracking_number = tracking_number
+    @payload = payload
     @package = Package.find_by(tracking_number: tracking_number)
   end
 
   def process
-    return false unless @package
+    return false unless @package && @payload.present?
 
-    service = TrackingService.new(@package.tracking_number, @package.courier_name)
-    tracking_data = service.track.first
-    return false unless tracking_data
+    # Normalize API vs Webhook format into a consistent array of hashes
+    normalized_payload =
+      if @payload.is_a?(Hash) && @payload["data"].is_a?(Array)
+        @payload["data"]
+      elsif @payload.is_a?(Hash) && @payload["data"].present?
+        [ @payload["data"] ]
+      elsif @payload.is_a?(Array)
+        @payload
+      else
+        []
+      end
 
-    old_events = @package.tracking_events || []
-    old_status = @package.status
+    # Always take the first element (since we store as array of hashes)
+    # Pick the payload that has at least one event with a "stage"
+    first_payload = normalized_payload.find do |p|
+      events = p.dig("track_info", "tracking", "providers", 0, "events") || []
+      events.any? { |e| e["stage"].present? }
+    end || {}
 
-    # Merge new events and update status
-    @package.merge_tracking_events!(tracking_data[:events])
-    @package.update(status: tracking_data[:status])
+    events_history = first_payload.dig("track_info", "tracking", "providers", 0, "events") || []
+    latest_event   = events_history.first || {}
 
-    # Notify user if changes occurred
-    if old_events != @package.tracking_events || old_status != @package.status
+    # Determine values with fallbacks
+    last_update = latest_event["time_utc"]
+    stage = latest_event["stage"] ||
+            latest_event["sub_status"].to_s.split("_").first
+                          .gsub(/([a-z])([A-Z])/, '\1 \2')
+                          .titleize
+    location = latest_event["location"] || begin
+      addr = latest_event["address"]
+      [ addr["city"], addr["state"] ].compact.join(", ") if addr
+    end
+    description = latest_event["description"]
+
+    # Update only if something changed
+    if @package.full_payload != normalized_payload
+      @package.update(
+        tracking_events: events_history,
+        status: stage || @package.status,
+        last_update: last_update,
+        last_location: location,
+        latest_description: description,
+        latest_stage: stage,
+        latest_substatus: latest_event["sub_status"],
+        latest_event_raw: latest_event,
+        tracking_provider: first_payload.dig("track_info", "tracking", "providers", 0, "provider", "name"),
+        full_payload: normalized_payload
+      )
+
       notify_user
     end
-
-    # Optionally, send to Zapier
-    send_to_zapier
 
     true
   end
@@ -34,38 +67,21 @@ class PackageWebhookService
 
   def notify_user
     user = @package.user
-    return unless user&.email.present?
+    return unless user
 
-    # Correct call:
-    UserMailer.status_update(user, @package).deliver_now
+    if user.email.present?
+      # Pass package and safely read last_update in mailer
+      @last_update_time = @package.last_update
+      UserMailer.status_update(user, @package).deliver_now
+    end
 
     if user.contact_number.present?
-      TwilioService.send_sms(
-        user.contact_number,
-        "Package #{@package.tracking_number} updated. Status: #{@package.status}"
-      )
+      formatted_status = @package.status.to_s
+                          .gsub(/([a-z])([A-Z])/, '\1 \2')
+                          .titleize
+      message = "Update on your package #{@package.tracking_number}:\n#{formatted_status}#{@package.last_location.present? ? " at #{@package.last_location}" : ""}.\nThank you for using OFW Companion"
+      sms_service = IprogSmsService.new(api_token: ENV["IPROG_API_TOKEN"])
+      sms_service.send_sms(number: user.contact_number, message: message)
     end
-  end
-
-  def send_to_zapier
-    payload = {
-      tracking_number: @package.tracking_number,
-      status: @package.status,
-      user_email: @package.user.email,
-      user_phone: @package.user.contact_number,
-      message: "Package #{@package.tracking_number} updated. Status: #{@package.status}"
-    }
-
-    zapier_url = ENV["ZAPIER_WEBHOOK_URL"]
-    return unless zapier_url.present?
-
-    uri = URI(zapier_url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    request = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
-    request.body = payload.to_json
-    http.request(request)
-  rescue => e
-    Rails.logger.error "Zapier webhook error: #{e.message}"
   end
 end

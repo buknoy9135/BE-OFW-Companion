@@ -1,67 +1,48 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>The page you were looking for doesn't exist (404)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-  .rails-default-error-page {
-    background-color: #EFEFEF;
-    color: #2E2F30;
-    text-align: center;
-    font-family: arial, sans-serif;
-    margin: 0;
-  }
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Page Not Found</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100">
+    <div
+      class="relative min-h-screen w-full bg-white flex flex-col items-center justify-center gap-10 px-8 py-12 lg:flex-row lg:items-center lg:justify-center lg:gap-20 lg:text-left overflow-hidden"
+    >
 
-  .rails-default-error-page div.dialog {
-    width: 95%;
-    max-width: 33em;
-    margin: 4em auto 0;
-  }
+      <!-- SVG Image (larger flex proportion) -->
+      <img 
+        src="/images/404-graphic.svg" 
+        alt="404" 
+        class="relative z-10 h-64 w-64 md:h-80 md:w-80 lg:h-[28rem] lg:w-[28rem] xl:h-[30rem] xl:w-[30rem]" 
+      />
 
-  .rails-default-error-page div.dialog > div {
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-left-color: #999;
-    border-bottom-color: #BBB;
-    border-top: #B00100 solid 4px;
-    border-top-left-radius: 9px;
-    border-top-right-radius: 9px;
-    background-color: white;
-    padding: 7px 12% 0;
-    box-shadow: 0 3px 8px rgba(50, 50, 50, 0.17);
-  }
+      <!-- Text and button (smaller flex proportion) -->
+      <div class="relative z-10 flex-[0.7] max-w-lg">
+        <div class="mb-8 space-y-3">
+          <span
+            class="inline-block bg-blue-100 text-blue-800 font-semibold text-sm md:text-base lg:text-lg px-4 py-1 rounded-full shadow-sm"
+          >
+            ⚠️ 404 Error
+          </span>
+          <h1 class="text-xl md:text-2xl lg:text-3xl font-bold text-blue-900">
+            You're currently lost <span class="inline-block animate-spin">😵‍💫</span>
+          </h1>
+          <p class="text-gray-600 text-base md:text-lg lg:text-xl">
+            We couldn't find the page you were looking for.
+          </p>
+        </div>
 
-  .rails-default-error-page h1 {
-    font-size: 100%;
-    color: #730E15;
-    line-height: 1.5em;
-  }
-
-  .rails-default-error-page div.dialog > p {
-    margin: 0 0 1em;
-    padding: 1em;
-    background-color: #F7F7F7;
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-left-color: #999;
-    border-bottom-color: #999;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-top-color: #DADADA;
-    color: #666;
-    box-shadow: 0 3px 8px rgba(50, 50, 50, 0.17);
-  }
-  </style>
-</head>
-
-<body class="rails-default-error-page">
-  <!-- This file lives in public/404.html -->
-  <div class="dialog">
-    <div>
-      <h1>The page you were looking for doesn't exist.</h1>
-      <p>You may have mistyped the address or the page may have moved.</p>
+        <!-- Home Button -->
+        <a
+          href="/"
+          class="inline-block bg-blue-900 text-white px-6 py-3 md:px-8 md:py-4 rounded-full shadow-md text-sm md:text-base lg:text-lg hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+        >
+          Go Home
+        </a>
+      </div>
     </div>
-    <p>If you are the application owner check the logs for more information.</p>
-  </div>
-</body>
+  </body>
 </html>

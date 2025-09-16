@@ -1,69 +1,89 @@
 class PackagesController < ApplicationController
-  before_action :authenticate_user!
-  before_action :set_package, only: [ :show, :webhook_update ]
+  skip_before_action :verify_authenticity_token, only: [ :webhook_update ] # required for external webhook
+  before_action :authenticate_user!, except: [ :webhook_update ]
+  before_action :set_package, except: [ :index, :new, :create, :webhook_update ]
+  before_action :set_carriers, only: [ :new, :create ]
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+
+  layout "template"
 
   def index
-    @packages = current_user.packages.order(created_at: :desc)
+    @q = current_user.packages.ransack(params[:q])
+    @packages = @q.result(distinct: true).order(created_at: :desc).page(params[:page]).per(10)
   end
 
   def new
-    @carriers = TrackingService.carriers
+    @package = Package.new
     tn = params[:tracking_number]
     carrier = params[:carrier]
 
     if tn.present?
       @tracking_details = TrackingService.new(tn, carrier).track
+      if @tracking_details.blank?
+        flash.now[:alert] = "No tracking details found. Please check the tracking number and/or add the courier code."
+        @tracking_details = []
+      end
     else
       @tracking_details = []
     end
   end
 
-  def show
-    @package = current_user.packages.find(params[:id])
-    @tracking_details = TrackingService.new(@package.tracking_number, @package.courier_name).track
-  end
+  def show; end
 
   def create
     @package = current_user.packages.new(
       tracking_number: params[:tracking_number],
-      courier_name: params[:courier_name]
+      courier_name: params[:courier_name],
+      carrier_code: params[:carrier_code],
+      status: params[:status],
+      last_location: params[:last_location],
+      last_update: params[:last_update],
+      expected_delivery: params[:expected_delivery],
+      latest_description: params[:latest_description],
+      latest_stage: params[:latest_stage],
+      latest_substatus: params[:latest_substatus],
+      tracking_provider: params[:tracking_provider],
+      tracking_events: safe_parse_events(params[:tracking_events]),
+      latest_event_raw: safe_parse_events(params[:latest_event_raw]),
+      full_payload: safe_parse_events(params[:full_payload]),
+      package_name: params[:package_name]
     )
 
-    # Parse tracking_events JSON from hidden field
-    @package.tracking_events = JSON.parse(params[:tracking_events]) rescue []
-
-    # Get the official status from TrackingService
-    tracking_details = TrackingService.new(@package.tracking_number, @package.courier_name).track
-    if tracking_details.any?
-      @package.status = tracking_details.first[:status]
-    end
-
     if @package.save
-      redirect_to packages_path, notice: "Package added."
+      redirect_to packages_path, notice: "Package successfully added."
     else
-      flash[:alert] = @package.errors.full_messages.join(", ")
-      redirect_to packages_path
+      @tracking_details = []
+      flash.now[:alert] = @package.errors.full_messages.join(", ")
+      render :new, status: :unprocessable_entity
     end
   end
 
-  skip_before_action :verify_authenticity_token, only: [ :webhook_update ] # required for external webhook
+  def edit; end
+
+  def update
+    if @package.update(package_params.slice(:package_name))
+      redirect_to package_path(@package), notice: "Package name updated"
+    else
+      flash.now[:alert] = "Failed to update package name."
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @package.destroy
+    redirect_to packages_path, notice: "Package #{@package.tracking_number} deleted."
+  end
+
   def webhook_update
-    payload = request.raw_post
-    data = JSON.parse(payload) rescue {}
-
+    data = JSON.parse(request.raw_post) rescue {}
     tracking_number = data.dig("data", "number")
-    events = data.dig("data", "origin_info", "trackinfo") || []
 
-    package = Package.find_by(tracking_number: tracking_number)
+    service = PackageWebhookService.new(tracking_number, data) # pass payload in
 
-    if package
-      package.update(
-        courier_name: data.dig("data", "carrier_code"),
-        tracking_events: merge_tracking_events(package.tracking_events, events)
-      )
+    if service.process
       render json: { success: true }
     else
-      render json: { success: false, error: "Package not found" }, status: :not_found
+      render json: { success: false, error: "Package not found or no changes" }, status: :not_found
     end
   end
 
@@ -73,16 +93,37 @@ class PackagesController < ApplicationController
     @package = current_user.packages.find(params[:id])
   end
 
-  def package_params
-    params.permit(:tracking_number, :courier_name, :status, tracking_events: [])
+  def set_carriers
+    @carriers = TrackingService.carriers
   end
 
-  # merge webhook + existing events (no duplicates)
-  def merge_tracking_events(existing, incoming)
-    existing ||= []
-    incoming ||= []
+  def package_params
+    params.require(:package).permit(
+      :tracking_number,
+      :courier_name,
+      :carrier_code,
+      :status,
+      :sub_status,
+      :pickup_date,
+      :estimated_delivery,
+      :origin_city,
+      :origin_state,
+      :origin_country,
+      :destination_city,
+      :destination_state,
+      :destination_country,
+      :package_name,
+      tracking_events: [],
+      latest_event_raw: [],
+      full_payload: []
+    )
+  end
 
-    combined = (existing + incoming).uniq { |e| [ e["status"], e["date"] ] }
-    combined.sort_by { |e| e["date"] }.reverse # newest first
+  def record_not_found
+    redirect_to packages_path, alert: "Record does not exist."
+  end
+
+  def safe_parse_events(json_string)
+    JSON.parse(json_string) rescue []
   end
 end

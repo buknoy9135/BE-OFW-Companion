@@ -11,5 +11,11 @@ class User < ApplicationRecord
 
   # dependencies
   has_many :packages
-  has_many :remittances
+  has_many :remittance_centers
+  # history table for currency converter
+  has_many :currency_conversions, dependent: :destroy
+
+  def full_name
+    "#{first_name} #{last_name}".strip
+  end
 end
