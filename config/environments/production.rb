@@ -83,10 +83,11 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address:              "smtp.sendgrid.net",
+    address:              "smtp.zoho.com",
     port:                 587,
-    user_name:            "apikey",
-    password:             ENV["SENDGRID_PASSWORD"],
+    domain:               "mcbp-org.com",
+    user_name:            "admin@mcbp-org.com",
+    password:             ENV["ZOHO_PASSWORD"],
     authentication:       "plain",
     enable_starttls_auto: true
   }
