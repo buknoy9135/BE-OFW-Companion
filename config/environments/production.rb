@@ -90,8 +90,8 @@ config.action_mailer.smtp_settings = {
   password:             ENV["ZOHO_PASSWORD"],
   authentication:       :login,
   enable_starttls_auto: true,
-  open_timeout:         60,   # give Render free instance enough time to wake up
-  read_timeout:         60    # same here
+  open_timeout:         120,   # give Render free instance enough time to wake up
+  read_timeout:         120    # same here
 }
 
   # Ignore bad email addresses and do not raise email delivery errors.
