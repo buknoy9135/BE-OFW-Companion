@@ -88,7 +88,7 @@ Rails.application.configure do
     domain:               "mcbp-org.com",
     user_name:            "admin@mcbp-org.com",
     password:             ENV["ZOHO_PASSWORD"],
-    authentication:       "plain",
+    authentication:       :login,
     enable_starttls_auto: true
   }
 
