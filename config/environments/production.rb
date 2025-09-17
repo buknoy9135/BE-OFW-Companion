@@ -82,15 +82,17 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "https://ofw-companion.onrender.com", protocol: "https" }
 
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address:              "smtp.zoho.com",
-    port:                 587,
-    domain:               "mcbp-org.com",
-    user_name:            "admin@mcbp-org.com",
-    password:             ENV["ZOHO_PASSWORD"],
-    authentication:       :login,
-    enable_starttls_auto: true
-  }
+config.action_mailer.smtp_settings = {
+  address:              "smtp.zoho.com",
+  port:                 587,
+  domain:               "mcbp-org.com",
+  user_name:            "admin@mcbp-org.com",
+  password:             ENV["ZOHO_PASSWORD"],
+  authentication:       :login,
+  enable_starttls_auto: true,
+  open_timeout:         60,   # give Render free instance enough time to wake up
+  read_timeout:         60    # same here
+}
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
